@@ -11,11 +11,6 @@ export type CouponResult =
   | { valid: true; coupon: Coupon }
   | { valid: false; error: string }
 
-/**
- * Procura um cupom pelo código.
- * O código não diferencia maiúsculas de minúsculas e ignora espaços nas pontas.
- * `today` existe para que os testes consigam controlar a data.
- */
 export function validateCoupon(code: string, today: Date = new Date()): CouponResult {
   const normalized = code.trim().toUpperCase()
 
@@ -36,29 +31,30 @@ export function validateCoupon(code: string, today: Date = new Date()): CouponRe
   return { valid: true, coupon }
 }
 
-/**
- * Calcula o desconto em centavos que o cupom dá sobre o subtotal.
- * O desconto nunca é maior que o subtotal (o total nunca fica negativo).
- */
 export function calculateDiscount(subtotal: number, coupon: Coupon | null): number {
   if (!coupon) {
     return 0
   }
 
+  let discount: number
   switch (coupon.type) {
     case 'percent':
-      return Math.round((subtotal * coupon.value) / 100)
+      discount = Math.round((subtotal * coupon.value) / 100)
+      break
     case 'fixed':
-      return coupon.value
+      discount = coupon.value
+      break
     case 'free-shipping':
-      return 0
+      discount = 0
+      break
   }
+
+  return Math.min(discount, subtotal)
 }
 
-// Compara só o dia (o cupom vale até o fim do dia de expiração).
 function isAfterDay(date: Date, isoDay: string): boolean {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
+  const year = date.getUTCFullYear()
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(date.getUTCDate()).padStart(2, '0')
   return `${year}-${month}-${day}` > isoDay
 }

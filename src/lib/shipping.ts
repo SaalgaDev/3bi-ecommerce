@@ -33,7 +33,7 @@ export function getRegion(cep: string): Region {
 export function calculateShipping(cep: string, subtotal: number): number {
   const region = getRegion(cep)
 
-  if (subtotal > FREE_SHIPPING_THRESHOLD) {
+  if (subtotal >= FREE_SHIPPING_THRESHOLD) {
     return 0
   }
 
